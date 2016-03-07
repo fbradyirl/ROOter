@@ -1,0 +1,19 @@
+opengt
+ set com 115200n81
+ set comecho off
+ set senddelay 0.05
+ waitquiet 1 0.2
+
+:start
+send "AT+CFUN=0^m"
+get 5 "" $s
+print $s
+sleep 5
+send "AT+CFUN=1^m"
+get 5 "" $s
+print $s
+
+
+:continue
+ exit 0
+

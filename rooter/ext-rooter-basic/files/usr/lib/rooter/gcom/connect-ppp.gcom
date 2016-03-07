@@ -1,0 +1,45 @@
+opengt
+ set com 115200n81
+ set comecho off
+ set senddelay 0.05
+ waitquiet 1 0.2
+
+:start
+let $g=$env("TIMEOUT")
+if $g = "" let f=25
+else let f = val($g)
+
+let $y=$env("SETUSER")
+let $z=$env("SETPASS")
+let $a=$env("SETAUTH")
+send "AT$QCPDPP=1,"
+send $a
+if $a="0" send "^m"
+else send ",\"" send $z send "\",\"" send $y send "\"^m"
+ gosub rloop
+
+:continue
+ exit 0
+
+:readatcmdx
+ send $c
+:rloop
+ let j=1
+:nloop
+if j > f let $s="^mTIMEOUT ERROR" goto loop11
+let $s=""
+ get 1 "^m" $s
+inc j
+if $s = "" goto nloop
+
+ let i=1
+:loop10
+ if $mid($s,i,5) = "ERROR" goto loop11
+ if $mid($s,i,2) = "OK" goto loop11
+if $mid($s,i,7) = "COMMAND" goto loop11
+if $mid($s,i,10) = "+CME ERROR" goto loop11
+ print $s
+ goto rloop
+:loop11
+ print $s
+ return

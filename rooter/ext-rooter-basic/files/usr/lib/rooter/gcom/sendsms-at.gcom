@@ -1,0 +1,33 @@
+opengt
+ set com 115200n81
+ set comecho off
+ set senddelay 0.05
+ waitquiet 1 0.2
+
+:start
+
+let $x=$env("ATCMD")
+let $j=$left($x,1)
+if $j = "0" let $j=$right($left($x,3),2)
+else let $j=$left($x,3)
+let k=len($x)-4
+let $p=$right($x,k)
+send "AT+CMGS="+$j+"^m"
+waitfor 3 ">"
+send $p+"^z"
+waitfor 15 "+CMGS: "
+
+if % = 0 gosub sentsub
+else system 'echo "SMS sending failed" > /tmp/smssendstatus'
+
+get 1 "" $s
+
+:continue
+ exit 0
+
+:sentsub
+get 1 " ^m^j" $s
+let $c=$s
+let $c='echo "SMS sent, reference: "'+$c+' > /tmp/smssendstatus'
+system $c
+return
