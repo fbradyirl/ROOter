@@ -16,30 +16,21 @@ send "AT$QCPDPP=1,"
 send $a
 if $a="0" send "^m"
 else send ",\"" send $z send "\",\"" send $y send "\"^m"
- gosub rloop
+let t=time()+f
+gosub getresult
+if $s="^mTIMEOUT ERROR" print $s
 
 :continue
  exit 0
 
-:readatcmdx
- send $c
-:rloop
- let j=1
-:nloop
-if j > f let $s="^mTIMEOUT ERROR" goto loop11
-let $s=""
- get 1 "^m" $s
-inc j
-if $s = "" goto nloop
-
- let i=1
-:loop10
- if $mid($s,i,5) = "ERROR" goto loop11
- if $mid($s,i,2) = "OK" goto loop11
-if $mid($s,i,7) = "COMMAND" goto loop11
-if $mid($s,i,10) = "+CME ERROR" goto loop11
- print $s
- goto rloop
-:loop11
- print $s
- return
+:getresult
+get 1 "^m" $s
+let x=len($s)
+if x=0 let $s="^mTIMEOUT ERROR"
+else print $s
+if $s="^jOK" return
+if $mid($s,0,6)="^jERROR" return
+if $mid($s,0,8)="^jCOMMAND" return
+if $mid($s,0,11)="^j+CME ERROR" return
+if time()>t return
+goto getresult

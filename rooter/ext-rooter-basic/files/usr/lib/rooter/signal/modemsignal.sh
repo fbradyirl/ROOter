@@ -46,6 +46,7 @@ make_connect() {
 	echo "$CONN" >> /tmp/statusx$CURRMODEM.file
 	echo "-" >> /tmp/statusx$CURRMODEM.file
 	echo "-" >> /tmp/statusx$CURRMODEM.file
+	echo "-" >> /tmp/statusx$CURRMODEM.file
 	mv -f /tmp/statusx$CURRMODEM.file /tmp/status$CURRMODEM.file
 }
 
@@ -77,6 +78,7 @@ make_signal() {
 	echo "$CONN" >> /tmp/statusx$CURRMODEM.file
 	echo "$CHANNEL" >> /tmp/statusx$CURRMODEM.file
 	echo "$CNUM" >> /tmp/statusx$CURRMODEM.file
+	echo "$CNAM" >> /tmp/statusx$CURRMODEM.file
 	mv -f /tmp/statusx$CURRMODEM.file /tmp/status$CURRMODEM.file
 }
 

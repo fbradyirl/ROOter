@@ -1,10 +1,11 @@
 #!/bin/sh
+. /usr/share/libubox/jshn.sh
 
 # Restore wireless access to the local AP for STA (Client) failures
 # (association or login) with a remote AP (revert to 'AP-only') configuration.
 
-. /usr/share/libubox/jshn.sh
-local _rc _sta_err
+local _rc 
+_sta_err=0
 let _sta_err++
 json_init
 json_load $(ubus -S call network.interface."$2" status)
@@ -18,6 +19,7 @@ while  [ $_rc = 0 ] || [ $ACTION = ifdown -a $_rc = 0 ]
             wifi up
             sleep 3
             mv -f /etc/config/wireless_AP+STA /etc/config/wireless
+		wifi
             break
         fi
         sleep 3

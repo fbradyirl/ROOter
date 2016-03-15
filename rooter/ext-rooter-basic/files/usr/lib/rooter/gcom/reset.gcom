@@ -4,8 +4,8 @@ opengt
  set senddelay 0.05
  waitquiet 1 0.2
 
-send "ate0^m"
-waitquiet 1 0.2
+//send "ate0^m"
+//waitquiet 1 0.2
 send "AT+COPS=2;+CFUN=0^m"
 waitfor 5 "OK"
 sleep 5

@@ -6,7 +6,7 @@
 	modemtype=0;
 	cell=0;
 	portx="-";
-	phonen = "";
+	phonenx = "";
 	hided = 0;
 
 	XHR.poll(2, '<%=luci.dispatcher.build_url("admin", "modem", "get_csq")%>', null,
@@ -38,20 +38,24 @@
 			document.getElementById('conmon').innerHTML=rv.netmode;
 
 			document.getElementById('crate').innerHTML=rv.crate;
-			if (phonen == "")
+			if (phonenx == "")
 			{
 				document.getElementById('phone').value=rv.phone;
-				phonen = document.getElementById('phone').value;
+				document.getElementById('phonen').value=rv.phonen;
+				phonenx = document.getElementById('phone').value;
 				document.getElementById("phone").disabled=false;
+				document.getElementById("phonen").disabled=false;
 				document.getElementById("pho").disabled=false;
 			}
 			
 			if (rv.phone == "-")
 			{
 				document.getElementById('phone').value="-";
+				document.getElementById('phonen').value="-";
 				document.getElementById("pho").disabled=true;
 				document.getElementById("phone").disabled=true;
-				phonen = "";
+				document.getElementById("phonen").disabled=true;
+				phonenx = "";
 			}
 
 			reslt=rv.result
@@ -102,6 +106,7 @@
 		document.getElementById('chan').innerHTML=" ";
 		document.getElementById('conmon').innerHTML="-";
 		document.getElementById('phone').value="-";
+		document.getElementById('phonen').value="-";
 		document.getElementById('idvp').innerHTML="-";
 		document.getElementById('imei').innerHTML="-";
 		document.getElementById('imsi').innerHTML="-";
@@ -184,6 +189,7 @@
 			document.getElementById('imsi').style.display="none";
 			document.getElementById('iccid').style.display="none";
 			document.getElementById('phone').style.display="none";
+			document.getElementById('phonen').style.display="none";
 			document.getElementById('pho').disabled=true;
 		}
 		else
@@ -194,6 +200,7 @@
 			document.getElementById('imsi').style.display="block";
 			document.getElementById('iccid').style.display="block";
 			document.getElementById('phone').style.display="block";
+			document.getElementById('phonen').style.display="block";
 			document.getElementById('pho').disabled=false;
 		}
 		return false;
@@ -220,6 +227,9 @@
 	function updaten(btn)
 	{
 		nmode=document.getElementById("phone").value;
+		pmode=document.getElementById("phonen").value;
+		nmodex = nmode.concat("|");
+		nmode = nmodex.concat(pmode);
 		btn.disabled = true;
 		btn.value    = '<%:Changing...%>';
 
@@ -229,7 +239,7 @@
 			{
 				btn.disabled = false;
 				btn.value    = '<%:Apply Change%>';
-				phonen = "";
+				phonenx = "";
 			}
 		);
 	}
@@ -306,6 +316,7 @@
      		<td><div align="right">SIM ICCID : </div></td>
 		<td><ul id="iccid"></ul></td>
   	</tr>
+	</table>
 	<table width="550"  border="0">
 	<tr>
     		<td width="30%"><div align="right">SIM Phone Number : </div></td>
@@ -315,6 +326,10 @@
 		</td>
     		<td width="12%">&nbsp;</td>
 		<td width="11%">&nbsp;</td>
+  	</tr>
+	<tr>
+     		<td><div align="right">SIM Name : </div></td>
+		<td><input name="phonen" id="phonen" style="width: 250px;"></input></td>
   	</tr>
 	</table>
 </fieldset>

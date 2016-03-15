@@ -7,7 +7,7 @@ function index()
 		return
 	end
 
-	page = entry({"admin", "modem", "failover"}, cbi("rooter/failover"), "Connection Failover", 2)
+	page = entry({"admin", "modem", "failover"}, cbi("rooter/failover"), "Connection Failover", 25)
 	page.dependent = true
 
 	entry({"admin", "modem", "get_status"}, call("action_get_status"))

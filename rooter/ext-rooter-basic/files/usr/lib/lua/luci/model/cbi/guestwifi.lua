@@ -44,7 +44,7 @@ ssid.optional=false;
 ssid.rmempty = true;
 ssid.default="guest"
 
-ip = gw1:option(Value, "ip", translate("Network IP Address :")); 
+ip = gw1:option(Value, "ip", translate("Network IP Address :"), translate("Must be different subnet than router")); 
 ip.rmempty = true;
 ip.optional=false;
 ip.default="192.168.3.1";

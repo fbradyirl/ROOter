@@ -1,0 +1,25 @@
+#!/bin/sh
+. /usr/share/libubox/jshn.sh
+
+logger -t DEBUG -s "hotplug (net): action='$ACTION' interface='$INTERFACE'"
+
+local _wwan _wait _device _up
+
+_wwan=wwan
+_wait=15
+
+json_init
+# the interface is known but not the device
+json_load $(ubus -S call network.interface."$_wwan" status)
+# the update to the ubus object might be delayed...
+json_get_var _up up
+[ "$_up" = 0 ] && sleep $_wait && json_load $(ubus -S call network.interface."$_wwan" status)
+# extract the device that is hosting the STA interface
+json_get_var _device device
+json_cleanup
+if [ $_device -a "$ACTION" = add -a "$INTERFACE" = "$_device" ]; then
+	ENB=$(uci get wireless.wwan.disabled)
+	if [ $ENB -eq 1 ]; then
+		/usr/sbin/revert_to_AP.sh $_wait $_wwan
+	fi
+fi

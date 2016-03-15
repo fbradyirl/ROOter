@@ -27,6 +27,8 @@ mdns1 = {}
 mdns2 = {}
 mlog = {}
 mlb = {}
+matc = {}
+mat = {}
 
 for i=1,maxmodem do
 	stri = string.format("%d", i)
@@ -104,6 +106,16 @@ for i=1,maxmodem do
 		mlb[i]:value("1", "Yes")
 		mlb[i].default=0
 	end
+
+	mat[i] = di[i]:option(ListValue, "at", "Enable Custom AT Startup Command at Connection :");
+	mat[i]:value("0", "No")
+	mat[i]:value("1", "Yes")
+	mat[i].default=0
+
+	matc[i] = di[i]:option(Value, "atc", "Custom AT Startup Command :");
+	matc[i].optional=false;
+	matc[i].rmempty = true;
+	matc[i]:depends("at", "1")
 
 end
 

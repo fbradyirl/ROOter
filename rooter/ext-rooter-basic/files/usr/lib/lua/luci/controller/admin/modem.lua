@@ -3,12 +3,12 @@ module("luci.controller.admin.modem", package.seeall)
 function index() 
 	entry({"admin", "modem"}, firstchild(), "Modem", 30).dependent=false
 	entry({"admin", "modem", "cinfo"}, cbi("rooter/connection", {autoapply=true}), "Connection Info", 1)
-	entry({"admin", "modem", "conmon"}, cbi("rooter/connmonitor"), "Connection Monitoring", 2)
-	entry({"admin", "modem", "nets"}, template("rooter/net_status"), "Network Status", 3)
-	entry({"admin", "modem", "debug"}, template("rooter/debug"), "Debug Information", 4)
-	entry({"admin", "modem", "cust"}, cbi("rooter/customize"), "Custom Modem Ports", 5)
-	entry({"admin", "modem", "log"}, template("rooter/log"), "Connection Log", 7)
-	entry({"admin", "modem", "misc"}, template("rooter/misc"), "Miscellaneous", 8)
+	entry({"admin", "modem", "conmon"}, cbi("rooter/connmonitor"), "Connection Monitoring", 20)
+	entry({"admin", "modem", "nets"}, template("rooter/net_status"), "Network Status", 30)
+	entry({"admin", "modem", "debug"}, template("rooter/debug"), "Debug Information", 50)
+	entry({"admin", "modem", "cust"}, cbi("rooter/customize"), "Custom Modem Ports", 55)
+	entry({"admin", "modem", "log"}, template("rooter/log"), "Connection Log", 60)
+	entry({"admin", "modem", "misc"}, template("rooter/misc"), "Miscellaneous", 40)
 
 	entry({"admin", "modem", "get_csq"}, call("action_get_csq"))
 	entry({"admin", "modem", "change_port"}, call("action_change_port"))
@@ -89,7 +89,7 @@ function action_send_atcmd()
 	local file
 	local set = luci.http.formvalue("set")
 	fixed = string.gsub(set, "\"", "~")
-	os.execute("/usr/lib/rooter/luci/atcmd.sh \"" .. fixed .. "\"")
+	os.execute("/usr/lib/rooter/luci/atcmd.sh \'" .. fixed .. "\'")
 
 	result = "/tmp/result" .. modnum .. ".at"
 	file = io.open(result, "r")
@@ -236,6 +236,10 @@ function action_get_csq()
 	rv["conntype"] = file:read("*line")
 	rv["channel"] = file:read("*line")
 	rv["phone"] = file:read("*line")
+	rv["phonen"] = file:read("*line")
+	if rv["phonen"] == nil then
+		rv["phonen"] = " "
+	end
 
 	file:close()
 
@@ -289,11 +293,17 @@ function action_get_csq()
 		rv["imei"] = " "
 		rv["imsi"] = " "
 		rv["iccid"] = " "
+		rv["phone"] = "-"
+		rv["phonen"] = " "
 	else
 		rv["modid"] = file:read("*line")
 		rv["imei"] = file:read("*line")
 		rv["imsi"] = file:read("*line")
 		rv["iccid"] = file:read("*line")
+		if rv["phone"] == "-" then
+			rv["phone"] = file:read("*line")
+			rv["phonen"] = file:read("*line")
+		end
 		file:close()
 	end
 
@@ -312,8 +322,11 @@ end
 
 function action_change_phone()
 	local set = luci.http.formvalue("set")
+	s, e = string.find(set, "|")
+	pno = string.sub(set, 1, s-1)
+	pnon = string.sub(set, e+1)
 	modnum = luci.model.uci.cursor():get("modem", "general", "modemnum")
-	os.execute("/usr/lib/rooter/common/phone.sh " .. modnum .. " " .. set)
+	os.execute("/usr/lib/rooter/common/phone.sh " .. modnum .. " " .. pno .. " \"" .. pnon .. "\"")
 end
 
 function action_clear_log()

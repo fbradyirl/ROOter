@@ -55,7 +55,7 @@ while uqmi -s -d "$device" --get-serving-system | grep '"searching"' > /dev/null
 	sleep 5;
 done
 
-log "Starting network $apn"
+log "Starting network $NAPN"
 cid=`uqmi -s -d "$device" --get-client-id wds`
 [ $? -ne 0 ] && {
 	log "Unable to obtain client ID"

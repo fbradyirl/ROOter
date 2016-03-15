@@ -12,9 +12,14 @@ if $j = "0" let $j=$right($left($x,3),2)
 else let $j=$left($x,3)
 let k=len($x)-4
 let $p=$right($x,k)
-send "AT+CMGS="+$j+"^m"
+send "AT+CMGF=0^m"
+waitfor 2 "OK"
+send "AT+CMGS="
+send $j
+send "^m"
 waitfor 3 ">"
-send $p+"^z"
+send $p
+send "^z"
 waitfor 15 "+CMGS: "
 
 if % = 0 gosub sentsub
@@ -31,3 +36,4 @@ let $c=$s
 let $c='echo "SMS sent, reference: "'+$c+' > /tmp/smssendstatus'
 system $c
 return
+

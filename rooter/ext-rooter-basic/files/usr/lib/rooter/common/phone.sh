@@ -9,10 +9,13 @@ log() {
 
 CURRMODEM=$1
 PHONE=$2
+NAME=$3
+
 CPORT=$(uci get modem.modem$CURRMODEM.commport)
 PHONE=$(echo "$PHONE" | sed -e 's/ //g')
 echo 'CNUM="'"$PHONE"'"' > /tmp/phonenumber$CURRMODEM
-log "Change Modem $CURRMODEM SIM phone number to $PHONE"
+echo 'CNAM="'"$NAME"'"' >> /tmp/phonenumber$CURRMODEM
+log "Change Modem $CURRMODEM SIM phone number to $PHONE, name to $NAME"
 
 INTER=${PHONE:0:1}
 if [ $INTER = "+" ]; then
@@ -27,7 +30,7 @@ OX=$($ROOTER/common/processat.sh "$OX")
 
 ON=$(echo "$OX" | awk -F[,\ ] '/^\+CPBS:/ {print $2}')
 if [ $ON = "\"ON\"" ]; then
-	ATCMDD="AT+CPBW=1,\"$PHONE\",$TON,\"OwnNbr\""
+	ATCMDD="AT+CPBW=1,\"$PHONE\",$TON,\"$NAME\""
 	OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
 	ATCMDD="AT+CNUM"
 	OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
@@ -39,6 +42,13 @@ if [ $ON = "\"ON\"" ]; then
 	else
 		CNUM="*"
 	fi
+	CNUMx=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $2}')
+	if [ "x$CNUMx" != "x" ]; then
+		CNUMx=$(echo "$CNUMx" | sed -e 's/"//g')
+	else
+		CNUMx="*"
+	fi
 	echo 'CNUM="'"$CNUM"'"' > /tmp/phonenumber$CURRMODEM
+	echo 'CNAM="'"$CNUMx"'"' >> /tmp/phonenumber$CURRMODEM
 fi
 

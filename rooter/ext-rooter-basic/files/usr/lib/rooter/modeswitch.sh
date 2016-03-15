@@ -266,6 +266,9 @@ if [ "$ACTION" = add ]; then
 	if [ $idV = 1199 -a $idP = 0fff ]; then 
 		retval=0
 	fi
+	if [ $idV = 12d1 -a $idP = 157d ]; then 
+		retval=0
+	fi
 	if [ $retval -eq 1 ]; then
 		display_top; display "Found MBIM Modem at $DEVICENAME"; display_bottom
 		echo 2 >/sys/bus/usb/devices/$DEVICENAME/bConfigurationValue

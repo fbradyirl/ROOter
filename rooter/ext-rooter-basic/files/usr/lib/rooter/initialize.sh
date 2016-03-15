@@ -40,7 +40,7 @@ do_zone() {
 }
 
 firstboot() {
-	HO=$(system.@system[-1].hostname)
+	HO=$(uci get system.@system[-1].hostname)
 	if [ $HO = "OpenWrt" ]; then
 		uci set system.@system[-1].hostname="ROOter"
 	fi
@@ -54,10 +54,6 @@ firstboot() {
 
 	config_load firewall
 	config_foreach do_zone zone
-
-	cp /etc/config/wireless /etc/config/wireless_AP
-	uci delete wireless_AP.STA_name
-	uci commit wireless_AP
 
 	uci set luci.main.mediaurlbase="/luci-static/material"
 	uci commit luci
@@ -219,7 +215,7 @@ PRO=$(uci get network.wwan.proto)
 if [ -z $PRO ]; then
 	uci set network.wwan=interface
 	uci set network.wwan.proto=dhcp  
-	uci set network.wwan.ifname=" "
+	uci set network.wwan.ifname="wlan0"
 	uci set network.wwan.metric="2"
 fi
 
@@ -228,6 +224,23 @@ uci commit network
 if [ -e /etc/config/mwan3 ]; then
 	uci commit mwan3
 fi
+
+WW=$(uci get wireless.wwan)
+if [ -z $WW ]; then
+	uci set wireless.wwan="wifi-iface"
+	uci set wireless.wwan.device="radio0"
+	uci set wireless.wwan.network="wwan"
+	uci set wireless.wwan.mode="sta"
+	uci set wireless.wwan.ssid="hotspotssid"
+	uci set wireless.wwan.encryption="none"
+	uci set wireless.wwan.disabled="1"
+	uci commit wireless
+	wifi
+fi
+
+cp /etc/config/wireless /etc/config/wireless_AP
+uci delete wireless_AP.wwan
+uci commit wireless_AP
 
 if [ -e $ROOTER/removeipv6.sh ]; then
 	$ROOTER/removeipv6.sh
@@ -244,6 +257,12 @@ if [ -e /etc/hotplug.d/50-printer ]; then
 fi
 
 lua $ROOTER/gpiomodel.lua
+
+HO=$(uci get system.@system[-1].hostname)
+if [ $HO = "OpenWrt" ]; then
+	uci set system.@system[-1].hostname="ROOter"
+	uci commit system
+fi
 
 echo "0" > /etc/firstboot
 echo "0" > /tmp/bootend.file

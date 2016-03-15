@@ -5,10 +5,9 @@ ROOTER=/usr/lib/rooter
 CURRMODEM=$1
 CPORT=$(uci get modem.modem$CURRMODEM.commport)
 
-ATCMDD="AT+CFUN=1"
-OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
-ATCMDD="ATI"
-OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+sleep 10
+
+OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "gettype.gcom" "$CURRMODEM")
 OX=$($ROOTER/common/processat.sh "$OX")
 
 MANUF=$(echo "$OX" | awk -F[:] '/Manufacturer:/ { print $2}')
@@ -39,8 +38,8 @@ else
 	IMEI="Unknown"
 fi
 
-IDP=$(uci get modem.modem$CURRMODEM.uPid)
-IDV=$(uci get modem.modem$CURRMODEM.uVid)
+IDP=$(uci get modem.modem$CURRMODEM.idP)
+IDV=$(uci get modem.modem$CURRMODEM.idV)
 
 echo $IDV" : "$IDP > /tmp/msimdatax$CURRMODEM
 echo "$IMEI" >> /tmp/msimdatax$CURRMODEM
@@ -53,6 +52,28 @@ uci set modem.modem$CURRMODEM.celltype=$CELL
 uci commit modem
 
 $ROOTER/luci/celltype.sh $CURRMODEM
+
+M2=$(echo "$OX" | sed -e "s/+CNUM: /+CNUM:,/g")
+CNUM=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $3}')
+if [ "x$CNUM" != "x" ]; then
+	CNUM=$(echo "$CNUM" | sed -e 's/"//g')
+else
+	CNUM="*"
+fi
+CNUMx=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $2}')
+if [ "x$CNUMx" != "x" ]; then
+	CNUMx=$(echo "$CNUMx" | sed -e 's/"//g')
+else
+	CNUMx="*"
+fi
+
+NLEN=$(echo "$OX" | awk -F[,\ ] '/^\+CPBR:/ {print $4}')
+if [ "x$NLEN" != "x" ]; then
+	NLEN=$(echo "$NLEN" | sed -e 's/"//g')
+else
+	NLEN="14"
+fi
+echo 'NLEN="'"$NLEN"'"' > /tmp/namelen$CURRMODEM
 
 ATCMDD="AT+CIMI"
 OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
@@ -95,16 +116,7 @@ else
 	fi
 fi
 echo "$ICCID" >> /tmp/msimdatax$CURRMODEM
-
-ATCMDD="AT+CNUM"
-OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
-M2=$(echo "$OX" | sed -e "s/+CNUM: /+CNUM:,/g")
-CNUM=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $3}')
-if [ "x$CNUM" != "x" ]; then
-	CNUM=$(echo "$CNUM" | sed -e 's/"//g')
-else
-	CNUM="*"
-fi
 echo "$CNUM" >> /tmp/msimdatax$CURRMODEM
+echo "$CNUMx" >> /tmp/msimdatax$CURRMODEM
 
 mv -f /tmp/msimdatax$CURRMODEM /tmp/msimdata$CURRMODEM

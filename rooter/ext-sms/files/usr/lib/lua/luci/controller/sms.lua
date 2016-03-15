@@ -2,7 +2,7 @@ module("luci.controller.sms", package.seeall)
 
 function index()
 	local page
-	page = entry({"admin", "modem", "sms"}, template("rooter/sms"), "SMS Messaging", 6)
+	page = entry({"admin", "modem", "sms"}, template("rooter/sms"), "SMS Messaging", 35)
 	page.dependent = true
 
 	entry({"admin", "modem", "check_read"}, call("action_check_read"))

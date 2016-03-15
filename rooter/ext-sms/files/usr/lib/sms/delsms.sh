@@ -42,6 +42,7 @@ while [ 1 -lt 6 ]; do
 				rm -rf "${LOCKDIR}"
 			fi
 		fi
+		sleep 1
 	fi
 done
 rm -rf "${LOCKDIR}"

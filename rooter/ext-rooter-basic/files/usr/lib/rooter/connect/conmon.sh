@@ -89,6 +89,10 @@ while [ 1 = 1 ]; do
 				sleep 20
 
 			else
+				# check to see if modem iface has an IP address, if not try a reconnect/power toggle
+                        	if [ -z "$(ifconfig ${INTER} 2>- | sed '/inet\ /!d;s/.*r://g;s/\ .*//g')" ]; then
+                                	do_down " (no IP address)"
+                        	fi
 				MENABLE=$(uci get mwan3.wan$CURRMODEM.enabled)
 				MSCR=$(uci get mwan3.wan$CURRMODEM.dwnscript)
 				if [ $MENABLE = "1" -a $MSCR != nil -a -e $MSCR ]; then
@@ -98,7 +102,7 @@ while [ 1 = 1 ]; do
 						echo 'MONSTAT="'"Up ($CURSOR) (using Load Balance)"'"' > /tmp/monstat$CURRMODEM
 						log "Modem $CURRMODEM Connection is Alive Using Load Balance"
 					fi
-					sleep 20
+					sleep $(uci get mwan3.wan${CURRMODEM}.interval)
 				else
 					UPDWN="0"
 					host_up_count=0

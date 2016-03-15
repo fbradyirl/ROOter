@@ -271,7 +271,7 @@ case $PROT in
 #
 	"1"|"2"|"4"|"6"|"7"|"24"|"26"|"27" )
 		$ROOTER/sms/check_sms.sh $CURRMODEM &
-		$ROOTER/common/gettype.sh $CURRMODEM
+		$ROOTER/common/gettype.sh $CURRMODEM &
 		;;
 esac
 
@@ -399,7 +399,7 @@ esac
 	"4"|"6"|"7"|"24"|"26"|"27" )
 		OX=$($ROOTER/gcom/gcom-locked "/dev/cdc-wdm$WDMNX" "connect-ncm.gcom" "$CURRMODEM")
 		chcklog "$OX"
-		ERROR="CME ERROR"
+		ERROR="ERROR"
 		if `echo ${OX} | grep "${ERROR}" 1>/dev/null 2>&1`
 		then
 			OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "connect-ncm.gcom" "$CURRMODEM")
@@ -412,7 +412,7 @@ esac
 			$ROOTER/signal/status.sh $CURRMODEM "$MAN $MOD" "Failed to Connect : Retrying"
 		else
 			ifup wan$CURRMODEM
-			sleep 20
+			sleep 25
 			OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "cgpaddr.gcom" "$CURRMODEM")
 			chcklog "$OX"
 			OX=$($ROOTER/common/processat.sh "$OX")
@@ -486,6 +486,21 @@ case $PROT in
 	"1"|"2"|"4"|"6"|"7"|"24"|"26"|"27" )
 		ln -s $ROOTER/signal/modemsignal.sh $ROOTER_LINK/getsignal$CURRMODEM
 		ln -s $ROOTER/connect/reconnect.sh $ROOTER_LINK/reconnect$CURRMODEM
+		# send custom AT startup command
+		if [ $(uci get modem.modeminfo$CURRMODEM.at) -eq "1" ]; then
+			ATCMDD=$(uci get modem.modeminfo$CURRMODEM.atc)
+			if [ ! -z "${ATCMDD}" ]; then
+				OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+				OX=$($ROOTER/common/processat.sh "$OX")
+				ERROR="ERROR"
+				if `echo ${OX} | grep "${ERROR}" 1>/dev/null 2>&1`
+				then
+					log "Error sending custom AT command: $ATCMDD with result: $OX"
+				else
+					log "Sent custom AT command: $ATCMDD with result: $OX"
+				fi
+			fi
+		fi
 		;;
 	"3" )
 		source /tmp/mbimcustom$CURRMODEM

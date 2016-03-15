@@ -123,7 +123,7 @@ log "PPP Data Port : /dev/ttyUSB$DPORT"
 
 $ROOTER/common/lockchk.sh $CURRMODEM
 $ROOTER/sms/check_sms.sh $CURRMODEM &
-$ROOTER/common/gettype.sh $CURRMODEM
+$ROOTER/common/gettype.sh $CURRMODEM &
 
 rm -f /tmp/usbwait
 ifup wan$CURRMODEM
