@@ -471,6 +471,7 @@ if [ "$ACTION" = remove ]; then
 			rm -f /tmp/usbwait
 			rm -f /tmp/mdown$retresult
 			rm -f /tmp/msimdata$retresult
+			rm -f /tmp/msimnum$retresult
 			echo "0" > /tmp/modgone
 		fi
 	else

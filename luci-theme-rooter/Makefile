@@ -6,7 +6,7 @@
 
 include $(TOPDIR)/rules.mk
 
-THEME_NAME:=material
+THEME_NAME:=rooter
 THEME_TITLE:=Material
 
 PKG_NAME:=luci-theme-$(THEME_NAME)

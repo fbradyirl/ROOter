@@ -758,6 +758,12 @@ else
 		end
 		local msg = t[i+1] .. " " .. mn .. t[i + 3] .. " " .. t[i + 4] .. "  " .. stxt
 		tfile:write(msg .. "\n")
+		if mtxt == "::reboot!!" and t[i + 1] == byte2utf8(0x2691, '') then
+    			os.execute ("(sleep 60; reboot) &")
+ 		end
+		if mtxt == "::pwrtoggle!!" and t[i + 1] == byte2utf8(0x2691, '') then
+    			os.execute ("(sleep 60; /usr/lib/rooter/pwrtoggle.ah 3) &")
+ 		end
 		i = i + 6
 	end
 	tfile:close()

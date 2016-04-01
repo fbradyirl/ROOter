@@ -29,7 +29,7 @@ datalist[10] = "mf821"
 celllist[10] = 3
 datalist[11] = "k5005"
 celllist[11] = 3
-datalist[12] = "k5006"
+datalist[12] = "k5007"
 celllist[12] = 3
 datalist[13] = "l800"
 celllist[13] = 3
@@ -45,6 +45,16 @@ datalist[18] = "lte"
 celllist[18] = 3
 datalist[19] = "340u"
 celllist[19] = 2
+datalist[20] = "mf91d"
+celllist[20] = 3
+datalist[21] = "mf825a"
+celllist[21] = 3
+datalist[22] = "mf826"
+celllist[22] = 3
+datalist[23] = "313u"
+celllist[23] = 2
+datalist[24] = "341u"
+celllist[24] = 2
 
 printf = function(s,...)
 	if echo == 0 then

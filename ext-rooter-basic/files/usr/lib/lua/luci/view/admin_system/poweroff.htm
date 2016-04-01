@@ -12,12 +12,12 @@
 	function sendcmd(btn)
 	{
 		var s = 1;
-		document.getElementById("sstat").innerHTML="Powering Off ...";
+		document.getElementById("sstat").innerHTML="Stopping System ...";
 		XHR.get('<%=luci.dispatcher.build_url("admin", "system", "do_poweroff")%>',
 			null,
 			function()
 			{
-				document.getElementById("sstat").innerHTML="Router is now powered off";
+				document.getElementById("sstat").innerHTML="Router is now shutdown";
 			}
 		);
 
@@ -27,8 +27,8 @@
 //]]></script>
 
 <h2><a id="content" name="content"><%:System%></a></h2>
-<h3><%:Power Off%></h3>
-<p><%:Powers off the operating system of your device%></p>
-<p><input type="button" id="pwroff" class="cbi-button cbi-button-apply" value="<%:Power Off%>" onclick="return sendcmd(this)" /></p>
+<h3><%:System Stop%></h3>
+<p><%:Graceful system stop. De-power then re-power to restart.%></p>
+<p><input type="button" id="pwroff" class="cbi-button cbi-button-apply" value="<%:System Stop%>" onclick="return sendcmd(this)" /></p>
 <ul id="sstat"></ul>
 <%+footer%>

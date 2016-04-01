@@ -1,5 +1,9 @@
 #!/bin/sh
 
+log() {
+	logger -t "Delete SMS" "$@"
+}
+
 ROOTER=/usr/lib/rooter
 
 SLOT=$1

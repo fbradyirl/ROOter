@@ -236,10 +236,6 @@ function action_get_csq()
 	rv["conntype"] = file:read("*line")
 	rv["channel"] = file:read("*line")
 	rv["phone"] = file:read("*line")
-	rv["phonen"] = file:read("*line")
-	if rv["phonen"] == nil then
-		rv["phonen"] = " "
-	end
 
 	file:close()
 
@@ -293,17 +289,21 @@ function action_get_csq()
 		rv["imei"] = " "
 		rv["imsi"] = " "
 		rv["iccid"] = " "
-		rv["phone"] = "-"
-		rv["phonen"] = " "
 	else
 		rv["modid"] = file:read("*line")
 		rv["imei"] = file:read("*line")
 		rv["imsi"] = file:read("*line")
 		rv["iccid"] = file:read("*line")
-		if rv["phone"] == "-" then
-			rv["phone"] = file:read("*line")
-			rv["phonen"] = file:read("*line")
-		end
+		file:close()
+	end
+	stat = "/tmp/msimnum" .. modnum
+	file = io.open(stat, "r")
+	if file == nil then
+		rv["phone"] = "-"
+		rv["phonen"] = " "
+	else
+		rv["phone"] = file:read("*line")
+		rv["phonen"] = file:read("*line")
 		file:close()
 	end
 

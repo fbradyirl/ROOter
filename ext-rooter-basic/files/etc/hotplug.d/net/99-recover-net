@@ -5,6 +5,11 @@ logger -t DEBUG -s "hotplug (net): action='$ACTION' interface='$INTERFACE'"
 
 local _wwan _wait _device _up
 
+ENB=$(uci get wireless.wwan.disabled)
+if [ $ENB -eq 1 ]; then
+	exit 0
+fi
+
 _wwan=wwan
 _wait=15
 
@@ -18,8 +23,5 @@ json_get_var _up up
 json_get_var _device device
 json_cleanup
 if [ $_device -a "$ACTION" = add -a "$INTERFACE" = "$_device" ]; then
-	ENB=$(uci get wireless.wwan.disabled)
-	if [ $ENB -eq 1 ]; then
-		/usr/sbin/revert_to_AP.sh $_wait $_wwan
-	fi
+	/usr/sbin/revert_to_AP.sh $_wait $_wwan
 fi

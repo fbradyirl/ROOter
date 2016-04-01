@@ -61,6 +61,7 @@ for i=1,maxmodem do
 	interval[i]:value("20", translate("20 seconds"))
 	interval[i]:value("30", translate("30 seconds"))
 	interval[i]:value("60", translate("1 minute"))
+	interval[i]:value("180", translate("3 minute"))
 	interval[i]:value("300", translate("5 minutes"))
 	interval[i]:value("600", translate("10 minutes"))
 	interval[i]:value("900", translate("15 minutes"))

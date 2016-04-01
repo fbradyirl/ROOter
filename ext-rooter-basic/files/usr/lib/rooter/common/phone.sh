@@ -13,8 +13,7 @@ NAME=$3
 
 CPORT=$(uci get modem.modem$CURRMODEM.commport)
 PHONE=$(echo "$PHONE" | sed -e 's/ //g')
-echo 'CNUM="'"$PHONE"'"' > /tmp/phonenumber$CURRMODEM
-echo 'CNAM="'"$NAME"'"' >> /tmp/phonenumber$CURRMODEM
+
 log "Change Modem $CURRMODEM SIM phone number to $PHONE, name to $NAME"
 
 INTER=${PHONE:0:1}
@@ -38,17 +37,18 @@ if [ $ON = "\"ON\"" ]; then
 	M2=$(echo "$OX" | sed -e "s/+CNUM: /+CNUM:,/g")
 	CNUM=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $3}')
 	if [ "x$CNUM" != "x" ]; then
-		CNUM=$(echo "$CNUM" | sed -e 's/"//g')
+		CNUM=$(echo ${CNUM%%$'\n'*} | sed -e 's/"//g')
 	else
 		CNUM="*"
 	fi
 	CNUMx=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $2}')
 	if [ "x$CNUMx" != "x" ]; then
-		CNUMx=$(echo "$CNUMx" | sed -e 's/"//g')
+		CNUMx=$(echo ${CNUMx%%$'\n'*} | sed -e 's/"//g')
 	else
 		CNUMx="*"
 	fi
-	echo 'CNUM="'"$CNUM"'"' > /tmp/phonenumber$CURRMODEM
-	echo 'CNAM="'"$CNUMx"'"' >> /tmp/phonenumber$CURRMODEM
+	echo "$CNUM" > /tmp/msimnumx$CURRMODEM
+	echo "$CNUMx" >> /tmp/msimnumx$CURRMODEM
+	mv -f /tmp/msimnumx$CURRMODEM /tmp/msimnum$CURRMODEM
 fi
 

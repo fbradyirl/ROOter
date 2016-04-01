@@ -53,6 +53,8 @@ gpio[19] = 22
 gpio2[19] = 21
 model[20] = "ar150"
 gpio[20] = 6
+model[21] = "domino"
+gpio[21] = 6
 
 numodel = 20
 

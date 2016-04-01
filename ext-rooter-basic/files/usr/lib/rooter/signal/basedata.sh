@@ -72,27 +72,12 @@ else
 fi
 MODEM=$MANUF" "$MODEL
 
-M2=$(echo "$O" | sed -e "s/+CNUM: /+CNUM:,/g")
-CNUM=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $3}')
-if [ "x$CNUM" != "x" ]; then
-	CNUM=$(echo "$CNUM" | sed -e 's/"//g')
-else
-	CNUM="*"
-fi
-CNUMx=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $2}')
-if [ "x$CNUMx" != "x" ]; then
-	CNUMx=$(echo "$CNUMx" | sed -e 's/"//g')
-else
-	CNUMx="*"
-fi
-
 echo 'COPS="'"$COPS"'"' > /tmp/base$CURRMODEM.file
 echo 'COPS_MCC="'"$COPS_MCC"'"' >> /tmp/base$CURRMODEM.file
 echo 'COPS_MNC="'"$COPS_MNC"'"' >> /tmp/base$CURRMODEM.file
 echo 'MODEM="'"$MODEM"'"' >> /tmp/base$CURRMODEM.file
 echo 'DOWN="'"$DOWN"'"' >> /tmp/base$CURRMODEM.file
 echo 'UP="'"$UP"'"' >> /tmp/base$CURRMODEM.file
-echo 'CNUM="'"$CNUM"'"' >> /tmp/base$CURRMODEM.file
-echo 'CNAM="'"$CNUMx"'"' >> /tmp/base$CURRMODEM.file
+
 
 

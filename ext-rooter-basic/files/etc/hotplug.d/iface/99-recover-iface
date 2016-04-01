@@ -9,7 +9,7 @@ _wait=15
 
 if [ "$ACTION" = ifdown -a "$INTERFACE" = "$_wwan" ]; then
 	ENB=$(uci get wireless.wwan.disabled)
-	if [ $ENB -eq 1 ]; then
+	if [ $ENB -eq 0 ]; then
 		/usr/sbin/revert_to_AP.sh $_wait $_wwan
 	fi
 fi

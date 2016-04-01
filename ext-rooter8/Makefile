@@ -15,7 +15,7 @@ define Package/ext-rooter8
   CATEGORY:=ROOter
   DEPENDS:=+luci +luci-app-qos +luci-app-ddns +luci-proto-relayd +luci-app-openvpn +luci-app-mwan3 \
 		+ext-rooter-basic +ext-sms +ext-buttons +ext-p910nd +ext-samba \
-		+ext-umount +ext-command +ext-extra +ext-mjpg-streamer \
+		+ext-umount +ext-command \
 		+openvpn-easy-rsa +openvpn-openssl \
 		+rqmi +nano +picocom +kmod-usb-net-cdc-mbim +rmbim
   TITLE:=ROOter support for 8meg and larger routers

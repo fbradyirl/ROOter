@@ -56,13 +56,13 @@ $ROOTER/luci/celltype.sh $CURRMODEM
 M2=$(echo "$OX" | sed -e "s/+CNUM: /+CNUM:,/g")
 CNUM=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $3}')
 if [ "x$CNUM" != "x" ]; then
-	CNUM=$(echo "$CNUM" | sed -e 's/"//g')
+	CNUM=$(echo ${CNUM%%$'\n'*} | sed -e 's/"//g')
 else
 	CNUM="*"
 fi
 CNUMx=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $2}')
 if [ "x$CNUMx" != "x" ]; then
-	CNUMx=$(echo "$CNUMx" | sed -e 's/"//g')
+	CNUMx=$(echo ${CNUMx%%$'\n'*} | sed -e 's/"//g')
 else
 	CNUMx="*"
 fi
@@ -89,7 +89,7 @@ else
 fi
 echo "$IMSI" >> /tmp/msimdatax$CURRMODEM
 
-ATCMDD="AT+CRSM=176,12258"
+ATCMDD="AT+CRSM=176,12258,0,0,10"
 OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
 OX=$($ROOTER/common/processat.sh "$OX")
 ERROR="ERROR"
@@ -116,7 +116,9 @@ else
 	fi
 fi
 echo "$ICCID" >> /tmp/msimdatax$CURRMODEM
-echo "$CNUM" >> /tmp/msimdatax$CURRMODEM
-echo "$CNUMx" >> /tmp/msimdatax$CURRMODEM
+echo "$CNUM" > /tmp/msimnumx$CURRMODEM
+echo "$CNUMx" >> /tmp/msimnumx$CURRMODEM
 
 mv -f /tmp/msimdatax$CURRMODEM /tmp/msimdata$CURRMODEM
+mv -f /tmp/msimnumx$CURRMODEM /tmp/msimnum$CURRMODEM
+

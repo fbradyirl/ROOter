@@ -55,7 +55,7 @@ firstboot() {
 	config_load firewall
 	config_foreach do_zone zone
 
-	uci set luci.main.mediaurlbase="/luci-static/material"
+	uci set luci.main.mediaurlbase="/luci-static/rooter"
 	uci commit luci
 }
 
