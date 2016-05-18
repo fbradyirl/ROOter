@@ -56,6 +56,9 @@ while [ 1 -lt 6 ]; do
 				uci set modem.modem$CURRMODEM.smsnum=$USED
 				uci commit modem
 				mv /tmp/smstemp$CURRMODEM /tmp/smsresult$CURRMODEM.at
+				if [ -e /usr/lib/sms/forwardsms.sh ]; then
+					sh /usr/lib/sms/forwardsms.sh $CURRMODEM
+				fi
 			fi
 			break
 		else
