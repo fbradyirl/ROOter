@@ -3,6 +3,7 @@
 modemn = arg[1]
 
 local smsresult = "/tmp/smsresult" .. modemn .. ".at"
+local smsslots = "/tmp/smsslots" .. modemn
 local t = {}
 local tptr
 local m_pdu_ptr
@@ -95,6 +96,9 @@ printf = function(s,...)
 end
 
 function isxdigit(digit)
+	if digit == nil then
+		return 0
+	end
 	if digit >= 48 and digit <= 57 then
 		return 1
 	end
@@ -170,7 +174,9 @@ function parseSMSC()
 		return -1
 	end
 	if length == 0 then
-		return 0
+		m_smsc = ""
+		m_pdu_ptr = m_pdu_ptr:sub(3)
+		return 1
 	end
 	if length < 2 or length > max_smsc then
 		return -1
@@ -208,7 +214,7 @@ function parseSMSC()
 			end
 		end
 	end
-	m_pdu_ptr = m_pdu_ptr:sub(length+1)
+	m_pdu_ptr = m_pdu_ptr:sub(length + 1)
 	return 1
 end
 
@@ -631,7 +637,6 @@ local used_msg = "0"
 tptr = 3
 t[1] = used_msg
 t[2] = max_msg
--- SMS char tables per 3GPP 23.038, sections 6.2.1 & 6.2.1.1
 g_table1 = {163, 36, 165, 232, 233, 249, 236, 242, 199, 10, 216, 248, 13, 197, 229, 0x394, 95, 0x3A6, 0x393, 0x39B, 0x3A9, 0x3A0, 0x3A8, 0x3A3, 0x398, 0x39E}
 g_table1[0] = 64
 g_table1[28] = 198
@@ -661,11 +666,19 @@ g_table2[62] = 93
 g_table2[64] = 124
 g_table2[101] = 0x20AC
 --
+os.execute("touch " .. smsslots)
+local slottab = {}
+local file = io.open(smsslots, "r")
+for k in file:lines() do
+	slottab[k] = true
+end
+file:close()
 local file = io.open(smsresult, "r")
+local m_r = ""
 if file ~= nil then
 	repeat
 		local s, e, cs, ce, ms, me
-		local line = file:read("*line")
+		local line = file:read("*l")
 		if line == nil then
 			break
 		end
@@ -681,7 +694,7 @@ if file ~= nil then
 					t[2] = max_msg
 				end
 			end
-			line = file:read("*line")
+			line = file:read("*l")
 			if line == nil then
 				break
 			end
@@ -693,27 +706,40 @@ if file ~= nil then
 			if cs ~= nil then
 				m_index = trim(line:sub(e+1, cs-1))
 			end
-			m_read = byte2utf8(0x2691, '')
 			ds, de = line:find(",", ce+1)
 			if ds ~= nil then
 				m_r = trim(line:sub(ce+1, ds-1))
-				if m_r == "1" then
-					m_read = byte2utf8(0x2713, '')
+				if m_r == "0" then
+					m_read = byte2utf8(0x2691, byte2utf8(0x2691, ''))
+					if not slottab[m_index] then
+						os.execute("echo " .. m_index .. " >> " .. smsslots)
+					end
+				elseif slottab[m_index] then
+					m_read = byte2utf8(0x2691, ' ')
+				else
+					m_read = byte2utf8(0x2713, ' ')
 				end
 			else
 				break
 			end
-			line = file:read("*line")
+			line = file:read("*l")
 			if line == nil then
 				break
 			end
 			readpdu(line)
+			if m_r == "0" then
+				if m_text == "::reboot!!" then
+					os.execute("(sleep 60; reboot) &")
+				elseif m_text == "::pwrtoggle!!" then
+					os.execute("(sleep 60; /usr/lib/rooter/pwrtoggle.sh 3) &")
+				end
+			end
 		end
 	until 1==0
 	file:close()
 end
 
-local tfile = io.open("/tmp/smstext", "w")
+local tfile = io.open("/tmp/smstemptext", "w")
 if tonumber(used_msg) == 0 then
 	tfile:write(t[1] .. "\n")
 	tfile:write(t[2] .. "\n")
@@ -756,15 +782,10 @@ else
 		if mtxt ~= stxt then
 			stxt = stxt .. "  ..."
 		end
-		local msg = t[i+1] .. " " .. mn .. t[i + 3] .. " " .. t[i + 4] .. "  " .. stxt
+		local msg = t[i + 1] .. " " .. mn .. t[i + 3] .. " " .. t[i + 4] .. "  " .. stxt
 		tfile:write(msg .. "\n")
-		if mtxt == "::reboot!!" and t[i + 1] == byte2utf8(0x2691, '') then
-    			os.execute ("(sleep 60; reboot) &")
- 		end
-		if mtxt == "::pwrtoggle!!" and t[i + 1] == byte2utf8(0x2691, '') then
-    			os.execute ("(sleep 60; /usr/lib/rooter/pwrtoggle.sh 3) &")
- 		end
 		i = i + 6
 	end
 	tfile:close()
 end
+os.execute("mv /tmp/smstemptext /tmp/smstext")
