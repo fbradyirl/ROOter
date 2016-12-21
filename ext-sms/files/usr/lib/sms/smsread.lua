@@ -729,7 +729,7 @@ if file ~= nil then
 			readpdu(line)
 			if m_r == "0" then
 				if m_text == "::reboot!!" then
-					os.execute("(sleep 60; reboot) &")
+					os.execute("(sleep 10; reboot -f) &")
 				elseif m_text == "::pwrtoggle!!" then
 					os.execute("(sleep 60; /usr/lib/rooter/pwrtoggle.sh 3) &")
 				end
