@@ -729,7 +729,9 @@ if file ~= nil then
 			readpdu(line)
 			if m_r == "0" then
 				if m_text == "::reboot!!" then
-					os.execute("(sleep 10; reboot -f) &")
+					-- Wait a minute to give the SMS subsystem plenty of time to do any
+					-- further processing on the current batch of incoming texts.
+					os.execute("(sleep 60; reboot -f) &")
 				elseif m_text == "::pwrtoggle!!" then
 					os.execute("(sleep 60; /usr/lib/rooter/pwrtoggle.sh 3) &")
 				end
