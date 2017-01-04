@@ -14,12 +14,13 @@ get_cell
 CREG="+CEREG:"
 LAC=$(echo "$O" | awk -F[,] '/\'$CREG'/ {printf "%s", toupper($3)}' | sed 's/[^A-F0-9]//g')
 if [ "x$LAC" = "x" ]; then
-    CREG="+CGREG:"
-    LAC=$(echo "$O" | awk -F[,] '/\'$CREG'/ {printf "%s", toupper($3)}' | sed 's/[^A-F0-9]//g')
+	CREG="+CGREG:"
+	LAC=$(echo "$O" | awk -F[,] '/\'$CREG'/ {printf "%s", toupper($3)}' | sed 's/[^A-F0-9]//g')
 fi
 
 if [ "x$LAC" != "x" ]; then
-	LAC_NUM=$(printf %d 0x$LAC)
+	LAC=$(printf "%04X" 0x$LAC)
+	LAC_NUM=$(printf "%d" 0x$LAC)
 else
 	LAC="-"
 	LAC_NUM="-"
@@ -37,20 +38,20 @@ if [ "x$CID" != "x" ]; then
 		RNC="-"
 		RNC_NUM="-"
 	else
-		LCID=$(echo "00000$CID" | awk '{print substr($1,length(substr($1,1,length($1)-8))+1)}')
-		LCID_NUM=$(printf %d 0x$LCID)
+		LCID=$(printf "%08X" 0x$CID)
+		LCID_NUM=$(printf "%d" 0x$LCID)
 		if [ "$CREG" = "+CEREG:" ]; then
-			RNC=$(echo "$LCID" | awk '{print substr($1,2,length($1)-3)}')
-			CID=$(echo "$LCID" | awk '{print substr($1,length(substr($1,1,length($1)-2))+1)}')
+			RNC=$(printf "${LCID:1:5}")
+			CID=$(printf "${LCID:6:2}")
 		else
-			RNC=$(echo "$LCID" | awk '{print substr($1,2,length($1)-5)}')
-			CID=$(echo "$LCID" | awk '{print substr($1,length(substr($1,1,length($1)-4))+1)}')
+			RNC=$(printf "${LCID:1:3}")
+			CID=$(printf "${LCID:4:4}")
 		fi
-		RNC_NUM=$(printf %d 0x$RNC)
+		RNC_NUM=$(printf "%d" 0x$RNC)
 		RNC_NUM=" ($RNC_NUM)"
 	fi
 
-	CID_NUM=$(printf %d 0x$CID)
+	CID_NUM=$(printf "%d" 0x$CID)
 else
 	LCID="-"
 	LCID_NUM="-"

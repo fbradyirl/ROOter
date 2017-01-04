@@ -16,168 +16,30 @@ function trim(s)
   return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
 
-function hasbit(x, p)
-	return x % (p + p) >= p
-end
-
-function bitand(x, y)
-	local p = 1; local z = 0; local limit = x > y and x or y
-	while p <= limit do
-		if hasbit(x, p) and hasbit(y, p) then
-			z = z + p
-		end
-		p = p + p
-	end
-	return z
-end
-
-function bitor(x, y)
-	local p = 1; local z = 0; local limit = x > y and x or y
-	while p <= limit do
-		if hasbit(x, p) or hasbit(y, p) then
-			z = z + p
-		end
-		p = p + p
-	end
-	return z
-end
-
-function bitleft(x, y)
-	return x * 2 ^ y
-end
-
 function action_send_sms()
+	if package.path:find(";/usr/lib/sms/?.lua") == nil then
+		package.path = package.path .. ";/usr/lib/sms/?.lua"
+	end
 	smsnum = luci.model.uci.cursor():get("modem", "general", "smsnum")
 	local set = luci.http.formvalue("set")
 	local number = trim(string.sub(set, 1, 20))
 	local txt = string.sub(set, 21)
-	local g7t = {}
-	g7t[64] = "00"
-	g7t[163] = "01"
-	g7t[36] = "02"
-	g7t[165] = "03"
-	g7t[232] = "04"
-	g7t[233] = "05"
-	g7t[249] = "06"
-	g7t[236] = "07"
-	g7t[242] = "08"
-	g7t[199] = "09"
-	g7t[216] = "0B"
-	g7t[248] = "0C"
-	g7t[197] = "0E"
-	g7t[229] = "0F"
-	g7t[0x394] = "10"
-	g7t[95] = "11"
-	g7t[0x3A6] = "12"
-	g7t[0x393] = "13"
-	g7t[0x39B] = "14"
-	g7t[0x3A9] = "15"
-	g7t[0x3A0] = "16"
-	g7t[0x3A8] = "17"
-	g7t[0x3A3] = "18"
-	g7t[0x398] = "19"
-	g7t[0x39E] = "1A"
-	g7t[198] = "1C"
-	g7t[230] = "1D"
-	g7t[223] = "1E"
-	g7t[201] = "1F"
-	g7t[164] = "24"
-	g7t[161] = "40"
-	g7t[196] = "5B"
-	g7t[214] = "5C"
-	g7t[209] = "5D"
-	g7t[220] = "5E"
-	g7t[167] = "5F"
-	g7t[191] = "60"
-	g7t[228] = "7B"
-	g7t[246] = "7C"
-	g7t[241] = "7D"
-	g7t[252] = "7E"
-	g7t[224] = "7F"
-	g7t[94] = "1B14"
-	g7t[123] = "1B28"
-	g7t[125] = "1B29"
-	g7t[92] = "1B2F"
-	g7t[91] = "1B3C"
-	g7t[126] = "1B3D"
-	g7t[93] = "1B3E"
-	g7t[124] = "1B40"
-	g7t[0x20AC] = "1B65"
-	g7t[96] = "27"
-	local unicode = ''
-	local g7hex = ''
-	local g7isok = true
-	local j = #txt
-	local res = nil
-	local msg = nil
-	local dcs
-	local k = 1
-	repeat
-		ch = string.byte(txt, k, k)
-		if ch >= 0xF0 then
-			g7hex = g7hex .. '3F'
-			unicode = unicode .. '003F'
-			k = k + 3
-		elseif ch >= 0xE0 then
-			ch = bitleft(bitand(ch, 0xF), 12)
-			ch = bitor(bitleft(bitand(string.byte(txt, k + 1, k + 1), 0x3F), 6), ch)
-			ch = bitor(bitand(string.byte(txt, k + 2, k + 2), 0x3F), ch)
-			res = g7t[ch]
-			if res == nil then
-				g7isok = false
-			else
-				g7hex = g7hex .. res
-			end
-			unicode = unicode .. ('000' .. string.format("%X", ch)):sub(-4)
-			k = k + 2
-		elseif ch >= 0xC0 then
-			ch = bitleft(bitand(ch, 0x3F), 6)
-			ch = bitor(bitand(string.byte(txt, k + 1, k + 1), 0x3F), ch)
-			res = g7t[ch]
-			if res == nil then
-				g7isok = false
-			else
-				g7hex = g7hex .. res
-			end
-			unicode = unicode .. ('000' .. string.format("%X", ch)):sub(-4)
-			k = k + 1
-		elseif ch <= 0x7F then
-			res = g7t[ch]
-			if res == nil then
-				g7hex = g7hex .. ("0" .. string.format("%X", ch)):sub(-2)
-			else
-				g7hex = g7hex .. res
-			end
-			unicode = unicode .. ('000' .. string.format("%X", ch)):sub(-4)
-		else
-			g7hex = g7hex .. '3F'
-			unicode = unicode .. '003F'
-		end
-		k = k + 1
-	until k > j
-	if g7isok and #g7hex <= 320 then
-		dcs = "00"
-		txt = g7hex
-	elseif g7isok then
-		msg = 'Processed text length = ' .. math.floor(#g7hex / 2) .. ' 7-bit characters.\n'
-		msg = msg .. 'Currently ROOter supports 160 maximum per message.'
-	elseif #unicode <= 280 then
-		dcs = "08"
-		txt = unicode
-	else
-		msg = 'Processed text length = ' .. math.floor(#unicode / 4) .. ' 16-bit Unicode characters.\n'
-		msg = msg .. 'Currently ROOter supports 70 maximum per message.'
-	end
-	local rv ={}
+	local utf8togsm = require "utf8togsm"
+	utf8togsm.chktxt(txt)
+	local msg = utf8togsm["msg"]
+	local dcs = utf8togsm["dcs"]
+	txt = utf8togsm["txt"]
+	local rv = {}
 	local file = nil
 	local k = 1
 	local status
+	local rfname = "/tmp/smssendstatus0000"
 	if msg == nil then
-		os.execute('if [ -e /tmp/smssendstatus ]; then rm /tmp/smssendstatus; fi')
-		os.execute("lua /usr/lib/sms/sendsms.lua " .. smsnum .. " " .. number .. " " .. dcs .. " " .. txt)
+		os.execute("if [ -e " .. rfname .. " ]; then rm " ..rfname .. "; fi")
+		os.execute("lua /usr/lib/sms/sendsms.lua " .. smsnum .. " " .. number .. " " .. dcs .. " " .. txt .. " 0000")
 		os.execute("sleep 3")
 		repeat
-			file = io.open("/tmp/smssendstatus", "r")
+			file = io.open(rfname, "r")
 			if file == nil then
 				os.execute("sleep 1")
 			end
@@ -188,6 +50,7 @@ function action_send_sms()
 		else
 			status = file:read("*line")
 			file:close()
+			os.remove (rfname)
 		end
 	else
 		status = msg
@@ -221,7 +84,7 @@ function action_check_read()
 		file = io.open(result, "r")
 		if file ~= nil then
 			file:close()
-			os.execute("lua /usr/lib/sms/smsread.lua " .. smsnum)
+--			os.execute("lua /usr/lib/sms/smsread.lua " .. smsnum)
 			file = io.open("/tmp/smstext", "r")
 			if file == nil then
 				rv["ready"] = "3"

@@ -21,21 +21,29 @@ uci set modem.modem$CURRMODEM.smsnum=999
 uci commit modem
 ATCMDD="AT+CPMS=\"ME\""
 OX=$($ROOTER/gcom/gcom-locked "$COMMPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
-MEC=$(echo "$OX" | grep -o "+CPMS:.*" | awk -F, '{print $1}' | grep -o "[0-9]\{1,3\}")
-if [ "x$MEC" = "x" ]; then
-	MEC="0"
+MESC=$(echo "$OX" | grep -o "+CPMS:.*" | awk -F, '{print $1}' | grep -o "[0-9]\{1,3\}")
+METC=$(echo "$OX" | grep -o "+CPMS:.*" | awk -F, '{print $2}' | grep -o "[0-9]\{1,3\}")
+MESLOT="0"
+if [ "x$MESC" = "x" ]; then
+	MESC="-1"
 fi
-if [ $MEC -gt 0 ];then
-	log "SMS ME storage contains $MEC messages"
+if [ "x$METC" = "x" ]; then
+	METC="0"
+	MESC="0"
 fi
-sleep 5
-ATCMDD="AT+CPMS=\"SM\""
+if [ $MESC -gt 0 ];then
+	log "SMS ME storage contains $MESC messages"
+fi
+sleep 1
+ATCMDD="AT+CPMS=\"SM\",\"SM\",\"SM\""
 OX=$($ROOTER/gcom/gcom-locked "$COMMPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
-sleep 5
+sleep 1
 
 rm -f /tmp/smsresult$CURRMODEM".at"
+> /tmp/smsslots$CURRMODEM
 
 while [ 1 -lt 6 ]; do
+	SLEEP="20"
 	while [ 1 -lt 6 ]; do
 		if mkdir "${LOCKDIR}" &>/dev/null; then
 			echo "$$" > "${PIDFILE}"
@@ -46,7 +54,33 @@ while [ 1 -lt 6 ]; do
 			USED=$(echo "$SX" | awk -F[,\ ] '/^\+CPMS:/ {print $2}')
 			MAXED=$(echo "$SX" | awk -F[,\ ] '/^\+CPMS:/ {print $3}')
 			NUMB=$(uci get modem.modem$CURRMODEM.smsnum)
-			if [ $USED != $NUMB ]; then
+			if [ $USED -eq $NUMB ]; then
+				if [ $MESC -gt 0 ] && [ $(($USED + 9999)) -lt $MAXED ] && [ $MESLOT -lt $METC ]; then
+					ATCMDD="AT+CPMS=\"ME\";+CMGR=$MESLOT;+CPMS=\"SM\""
+					OX=$($ROOTER/gcom/gcom-locked "$COMMPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+					PDU=$(echo "$OX" | grep -o "[0-9A-F]\{30,350\}")
+					PDUL=$(echo "$OX" | grep -o "+CMGR:.*" | grep -o ",[0-9]\{1,\}" | \
+						grep -o "[0-9]\{1,3\}")
+					if [ ${#PDU} -gt 0 ] && [ ${#PDUL} -gt 0 ]; then
+						if [ ${#PDUL} -eq 2 ]; then
+							PDUL="0$PDUL"
+						fi
+						ATCMDD="$PDUL,SM,1,$PDU"
+						OX=$($ROOTER/gcom/gcom-locked "$COMMPORT" "smswrite.gcom" \
+							"$CURRMODEM" "$ATCMDD")
+						MREF=$(echo "$OX" | grep -o "[0-9]\{1,3\}")
+						if [ ${#MREF} -gt 0 ]; then
+							echo "$MREF" >> /tmp/smsslots$CURRMODEM
+							ATCMDD="AT+CPMS=\"ME\";+CMGD=$MESLOT;+CPMS=\"SM\""
+							OX=$($ROOTER/gcom/gcom-locked "$COMMPORT" "run-at.gcom" \
+								"$CURRMODEM" "$ATCMDD")
+						fi
+						MESC=$(($MESC - 1))
+						SLEEP="5"
+					fi
+					MESLOT=$(($MESLOT + 1))
+				fi
+			else
 				log "Reread SMS Messages on Modem $CURRMODEM"
 				echo "$SX" > /tmp/smstemp$CURRMODEM
 				ATCMDD="AT+CMGL=4"
@@ -59,6 +93,8 @@ while [ 1 -lt 6 ]; do
 				if [ -e /usr/lib/sms/forwardsms.sh ]; then
 					sh /usr/lib/sms/forwardsms.sh $CURRMODEM
 				fi
+				lua /usr/lib/sms/smsread.lua $CURRMODEM
+				SLEEP="10"
 			fi
 			break
 		else
@@ -72,5 +108,5 @@ while [ 1 -lt 6 ]; do
 		fi
 	done
 	rm -rf "${LOCKDIR}"
-	sleep 20
+	sleep $SLEEP
 done
